@@ -14,10 +14,6 @@ class Api:
     FIND_ORDER_ID = f'/track?t='
 
 
-class ApiParams:
-    NON_EXISTING_COURIER = f'?courierId=0'
-
-
 class Url:
     MAIN_URL = f'https://qa-scooter.praktikum-services.ru/'
 
@@ -52,12 +48,12 @@ class Payloads:
 
 
 class Results:
-    OK_TRUE = {'ok': True}
-    CONFLICT_ALREADY_EXIST = {'code': 409, 'message': 'Этот логин уже используется. Попробуйте другой.'}
-    BAD_REQUEST_NOT_ENOUGH_DATA = {'code': 400, 'message': 'Недостаточно данных для создания учетной записи'}
     LOGIN_SUCCESS = 'id'
     ORDER_FIELD = 'orders'
     ORDER_SUCCESS = 'track'
+    OK_TRUE = {'ok': True}
+    CONFLICT_ALREADY_EXIST = {'code': 409, 'message': 'Этот логин уже используется. Попробуйте другой.'}
+    BAD_REQUEST_NOT_ENOUGH_DATA = {'code': 400, 'message': 'Недостаточно данных для создания учетной записи'}
     LOGIN_HALF_EMPTY = {'code': 400, 'message': 'Недостаточно данных для входа'}
     LOGIN_NOT_EXIST = {'code': 404, 'message': 'Учетная запись не найдена'}
     COURIER_NOT_FOUND = {'code': 404, 'message': 'Курьер с идентификатором 0 не найден'}
@@ -66,6 +62,8 @@ class Results:
     ACCEPT_ORDER_NOT_ENOUGH_DATA = {'code': 400, 'message': 'Недостаточно данных для поиска'}
     ACCEPT_ORDER_COURIER_NOT_EXIST = {'code': 404, 'message': 'Курьера с таким id не существует'}
     ACCEPT_ORDER_ORDER_NOT_EXIST = {'code': 404, 'message': 'Заказа с таким id не существует'}
+    GET_ORDER_BY_ITS_NUMBER_NOT_FOUND = {'code': 404, 'message': 'Заказ не найден'}
+    GET_ORDER_WITHOUT_NUMBER = {'code': 400, 'message': 'Недостаточно данных для поиска'}
 
 
 class Codes:

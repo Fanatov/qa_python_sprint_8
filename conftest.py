@@ -1,5 +1,4 @@
 import pytest
-
 from genlogic import GeneratedPayloads
 from yandex_precode import StaticData
 

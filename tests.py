@@ -1,7 +1,6 @@
 import allure
 import pytest
 import requests
-
 import DATA
 import yandex_precode
 
@@ -82,11 +81,11 @@ class TestOrderCreation:
 
 class TestOrderList:
     def test_order_list_non_existing_id_returns_correct_status_code(self):
-        response = requests.get(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.ApiParams.NON_EXISTING_COURIER}')
+        response = requests.get(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.COURIER_ID_PATH}{DATA.Id.id_zero}')
         assert response.status_code == DATA.Codes.NOT_FOUND
 
     def test_order_list_non_existing_id_returns_correct_message(self):
-        response = requests.get(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.ApiParams.NON_EXISTING_COURIER}')
+        response = requests.get(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.COURIER_ID_PATH}{DATA.Id.id_zero}')
         assert DATA.Results.COURIER_NOT_FOUND == response.json()
 
     def test_get_order_list_returns_list_of_orders(self, static_payloads):
@@ -95,6 +94,7 @@ class TestOrderList:
         courier_id = created_courier.json()['id']
         response = requests.get(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.COURIER_ID_PATH}{courier_id}')
         assert DATA.Results.ORDER_FIELD in response.json()
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
 
 class TestDeleteCourier:
@@ -111,12 +111,15 @@ class TestDeleteCourier:
                                         data=static_payloads)
         response = requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{created_courier.json()["id"]}')
         assert response.json() == DATA.Results.OK_TRUE
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{created_courier.json()["id"]}')
 
     def test_try_delete_existing_courier_returns_correct_status_code(self, static_payloads):
         created_courier = requests.post(f'{DATA.Url.MAIN_URL}{DATA.Api.COURIER_LOGIN}',
                                         data=static_payloads)
         response = requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{created_courier.json()["id"]}')
         assert response.status_code == DATA.Codes.SUCCESS
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{created_courier.json()["id"]}')
+
 
     def test_try_delete_empty_id(self):  # Ошибка АПИ Яндекса. Обратитесь к куратору Исканов Камил.
         response = requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}')
@@ -140,6 +143,7 @@ class TestAcceptOrder:
         response = requests.put(
             f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.ACCEPT_ORDER}{order_id}{DATA.Api.COURIER_ID_PATH}{courier_id}')
         assert response.json() == DATA.Results.OK_TRUE
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
     def test_try_accept_order_without_courier_id(self):
         created_order = requests.post(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}',
@@ -170,6 +174,7 @@ class TestAcceptOrder:
             f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.ACCEPT_ORDER}{DATA.Api.COURIER_ID_PATH}{courier_id}')
         print(response.json())
         assert response.json() == DATA.Results.ACCEPT_ORDER_NOT_ENOUGH_DATA
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
     def test_try_accept_order_without_order_id_returns_correct_status_code(self,
                                                                            static_payloads):  # Ошибка АПИ Яндекса. Обратитесь к куратору Исканов Камил.
@@ -180,6 +185,7 @@ class TestAcceptOrder:
             f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.ACCEPT_ORDER}{DATA.Api.COURIER_ID_PATH}{courier_id}')
         print(response.json())
         assert response.status_code == DATA.Codes.BAD_REQUEST
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
     def test_try_accept_order_with_non_existing_courier_id(self):
         created_order = requests.post(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}',
@@ -208,6 +214,7 @@ class TestAcceptOrder:
         response = requests.put(
             f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.ACCEPT_ORDER}{DATA.Id.id_zero}{DATA.Api.COURIER_ID_PATH}{courier_id}')
         assert response.json() == DATA.Results.ACCEPT_ORDER_ORDER_NOT_EXIST
+        requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
     def test_try_accept_order_non_existing_order_returns_correct_status_code(self, static_payloads):
         created_courier = requests.post(f'{DATA.Url.MAIN_URL}{DATA.Api.COURIER_LOGIN}',
@@ -218,3 +225,32 @@ class TestAcceptOrder:
         assert response.status_code == DATA.Codes.NOT_FOUND
         requests.delete(f'{DATA.Url.MAIN_URL}{DATA.Api.DELETE_COURIER}{courier_id}')
 
+
+class TestGetOrderByNumber:
+    def test_get_order_with_not_existing_order_returns_error(self):
+        response = requests.get(
+            f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.FIND_ORDER_ID}{DATA.Id.id_zero}')
+        assert response.json() == DATA.Results.GET_ORDER_BY_ITS_NUMBER_NOT_FOUND
+
+    def test_get_order_with_not_existing_order_returns_correct_status_code(self):
+        response = requests.get(
+            f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.FIND_ORDER_ID}{DATA.Id.id_zero}')
+        assert response.status_code == DATA.Codes.NOT_FOUND
+
+    def test_get_order_without_order_number_returns_error(self):
+        response = requests.get(
+            f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.FIND_ORDER_ID}')
+        assert response.json() == DATA.Results.GET_ORDER_WITHOUT_NUMBER
+
+    def test_get_order_without_order_number_returns_correct_status_code(self):
+        response = requests.get(
+            f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.FIND_ORDER_ID}')
+        assert response.status_code == DATA.Codes.BAD_REQUEST
+
+    def test_get_order_with_correct_number_returns_correct_response(self):
+        created_order = requests.post(f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}',
+                                      data=DATA.Payloads.ORDER_CREATION_PAYLOAD)
+        track_id = created_order.json()['track']
+        response = requests.get(
+            f'{DATA.Url.MAIN_URL}{DATA.Api.ORDER_CREATION}{DATA.Api.FIND_ORDER_ID}{track_id}')
+        assert response.status_code == DATA.Codes.SUCCESS
